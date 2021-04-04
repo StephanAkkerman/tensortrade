@@ -12,7 +12,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 # For getting the data
-from BinanceData import fetch4Hour
+from BinanceData import fetchData
 from tensortrade.data.cdd import CryptoDataDownload
 
 # Get the data for the benchmarks
@@ -24,9 +24,9 @@ from tensortrade.data.cdd import CryptoDataDownload
 #ohlcv.set_index('date', inplace = True)
 
 # Method two, use Binance data 
-# Found here: https://github.com/StephanAkkerman/BinanceExtras/blob/master/BinanceData.py
+# Found here: https://github.com/StephanAkkerman/TensorTrade
 coin = "BAT"
-ohlcv = fetch4Hour(symbol=(coin + "USDT"), days=200)
+ohlcv = fetchData(symbol=(coin + "USDT"), amount=2, timeframe='4h')
 ohlcv.set_index('date', inplace = True)
 
 # Matplotlib method for plotting candles in axs

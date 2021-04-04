@@ -9,7 +9,7 @@ import seaborn as sns
 
 # For fetching the data
 from tensortrade.data.cdd import CryptoDataDownload
-from BinanceData import fetch4Hour
+from BinanceData import fetchData
 
 def makePlot(type):
 
@@ -19,9 +19,9 @@ def makePlot(type):
         #df = cdd.fetch("Bitfinex", "USD", "BTC", "d")
         
         # Option 2: Use Binance data
-        # Found here: https://github.com/StephanAkkerman/BinanceExtras/blob/master/BinanceData.py
+        # Found here: https://github.com/StephanAkkerman/TensorTrade
         coin = "BAT"
-        df = fetch4Hour(symbol=(coin + "USDT"), days=200)
+        df = fetchData(symbol=(coin + "USDT"), amount=2, timeframe='4h')
 
         # Drop unix and set 'date' as index
         df = df[['date', 'open', 'high', 'low', 'close', 'volume']]
