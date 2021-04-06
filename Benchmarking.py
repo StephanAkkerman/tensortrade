@@ -26,7 +26,8 @@ from tensortrade.data.cdd import CryptoDataDownload
 # Method two, use Binance data 
 # Found here: https://github.com/StephanAkkerman/TensorTrade
 coin = "BAT"
-ohlcv = fetchData(symbol=(coin + "USDT"), amount=2, timeframe='4h')
+timeframe = '4h'
+ohlcv = fetchData(symbol=(coin + "USDT"), amount=2, timeframe=timeframe)
 ohlcv.set_index('date', inplace = True)
 
 # Matplotlib method for plotting candles in axs
@@ -87,8 +88,9 @@ def HODL2():
     portfoliodf = btcinport * ohlcv['close']
     axs[1].plot(portfoliodf)
 
-    axs[0].title.set_text('BTC Daily Candles')
+    axs[0].title.set_text(coin + ' ' + timeframe + ' Candles')
     axs[1].title.set_text('Net Worth')   
+    axs[1].ticklabel_format(useOffset=False, axis='y')
     plt.tight_layout() 
 
 # Based on  https://www.jasonlee.mobi/projects/2018/5/18/building-a-momentum-trading-strategy-using-python
@@ -152,13 +154,11 @@ def SMACrossover():
     portfolio['cash'] = initial_capital - (pos_diff.multiply(ohlcv['close'], axis=0)).sum(axis=1).cumsum()
     portfolio['total'] = portfolio['cash'] + portfolio['holdings']
 
-    axs[0].title.set_text('BTC Daily Candles')
+    axs[0].title.set_text(coin + ' ' + timeframe + ' Candles')
 
     # plot equity curve in dollars 
     axs[1].plot(portfolio['total'])
     axs[1].title.set_text('Net Worth')
-    axs[1].ticklabel_format(useOffset=False, axis='y')
-    axs[1].margins(x=0)
 
     plt.tight_layout() 
 
@@ -328,17 +328,198 @@ def RSIDiv():
     axs[2].plot(portfolio['total'], lw=2.)
 
     #plt.show()
-    axs[0].title.set_text('BTC Daily Candles')
+    axs[0].title.set_text(coin + ' ' + timeframe + ' Candles')
     axs[1].title.set_text('RSI')
     axs[2].title.set_text('Net Worth')
 
     plt.tight_layout()
 
+def Networths():
+
+    # BUY AND HOLD
+    btcvalue = ohlcv['close'][0]
+    btcinport = 100000 / btcvalue
+    portfoliodf = btcinport * ohlcv['close']
+    portfoliodf.plot(figsize=(20,8), label='Buy And Hold')
+
+    # RSI
+    # Add RSI to dataset
+    ohlcv['RSI'] = ta.momentum.RSIIndicator(close = ohlcv['close']).rsi()
+    ohlc = ohlcv[['open', 'high', 'low', 'close', 'RSI']]
+    ohlc['positions'] = 0
+    lower_barrier = 40
+    upper_barrier = 60
+    width = 20
+
+    # Bullish Divergence
+    # Start at 14, because RSI window = 14, so below that values wil be NaN
+    for i in range(14, len(ohlc)):
+        try:
+            #Scouting for when the RSI goes under the 30 level.
+            if ohlc.iat[i, 4] < lower_barrier:
+
+                #Scout for when it resurfaces above it.
+                for a in range(i+1, i + width):
+                    if ohlc.iat[a, 4] > lower_barrier:
+
+                        #Scout for whenever the RSI dips again under the 30 while not going lower than the first dip.
+                        #Simultaneously, the prices should be lower now than they were around the first dip. 
+                        for r in range(a + 1, a + width):
+                            if ohlc.iat[r, 4] < lower_barrier and ohlc.iat[r, 4] > ohlc.iat[i, 4] and ohlc.iat[r, 3] < ohlc.iat[i, 3]:
+                               #Scout for whenever the RSI resurfaces and completes the divergence pattern.
+                               for s in range(r + 1, r + width): 
+                                    if ohlc.iat[s, 4] > lower_barrier:
+                                        # Change value in positions column to 1 (meaning buy)
+                                        ohlc['positions'][s + 1] = 1
+                                        break
+                                    else:
+                                        continue
+                            else:
+                                continue
+                        else:
+                            continue
+                    else:
+                        continue
+        except IndexError:
+            pass
+
+    # Bearish divergence
+    for i in range(14, len(ohlc)):
+        try:
+            if ohlc.iat[i, 4] > upper_barrier:
+
+                for a in range(i+1, i + width):
+                    if ohlc.iat[a, 4] < upper_barrier:
+
+                        for r in range(a + 1, a + width):
+                            if ohlc.iat[r, 4] > upper_barrier and ohlc.iat[r, 4] < ohlc.iat[i, 4] and ohlc.iat[r, 3] > ohlc.iat[i, 3]:
+                                for s in range(r + 1, r + width): 
+                                    if ohlc.iat[s, 4] < upper_barrier:
+                                        # Change value in Bear_div column to -1 (sell)
+                                        ohlc['positions'][s + 1] = -1
+                                        break
+                                    else:
+                                        continue
+                            else:
+                                continue
+                        else:
+                            continue
+                    else:
+                        continue
+        except IndexError:
+            pass
+
+    # To fit the BSH Strategy
+    # Keep the first buy signal after -1 (and in the beginning)
+    # Keep first sell signal
+    buy = False
+    sell = True
+
+    for i in range(len(ohlc)): 
+        check = ohlc.iat[i, 5]
+
+        if check == 1:
+            sell = False
+
+            if buy == True:
+                ohlc['positions'][i] = 0
+            if buy == False:
+                buy = True
+        
+        if check == -1:
+            buy = False
+
+            if sell == True:
+                ohlc['positions'][i] = 0
+            if sell == False:
+                sell = True
+
+    # Make ohlc['signal'] for backtesting
+    ohlc['signal'] = 0
+    bought = False
+    for i in range(len(ohlc)): 
+        check = ohlc.iat[i, 5]
+
+        if check == 1:
+            bought = True
+
+        if check == -1:
+            bought = False
+
+        if bought == True:
+            ohlc['signal'][i] = 1   
+
+    # === Backtesting === 
+    initial_capital = float(100000)
+
+    # Find the amount to buy
+    start = (ohlc.signal.values != 0).argmax()
+    initial_price = ohlc.iloc[start, 3]
+    initial_hold = initial_capital / initial_price
+
+    # Positions keeps track of the amount owned
+    positions = pd.DataFrame(index=ohlc.index).fillna(0.0)
+    positions['Position in USD'] = ohlc['signal'] * initial_hold
+    pos_diff = positions.diff()
+
+    # Make a new dataframe to keep track of holdings and cash
+    portfolio = pd.DataFrame()
+    portfolio['holdings'] = (positions.multiply(ohlc['close'], axis=0)).sum(axis=1)
+    portfolio['cash'] = initial_capital - (pos_diff.multiply(ohlc['close'], axis=0)).sum(axis=1).cumsum()
+    portfolio['total'] = portfolio['cash'] + portfolio['holdings']
+    
+    portfolio['total'].plot(label='RSI Divergence')
+
+    # SMA
+    short_window = 40
+    long_window = 100
+
+    signals = pd.DataFrame(index = ohlcv.index)
+    signals['signal'] = 0.0
+
+    #SMA of short window
+    signals['short_mavg'] = ohlcv['close'].rolling(window=short_window, min_periods=1, center=False).mean()
+       
+    #SMA of long window
+    signals['long_mavg'] = ohlcv['close'].rolling(window=long_window, min_periods=1, center=False).mean()
+
+    #create signals for cross over
+    signals['signal'][short_window:] = np.where(signals['short_mavg'][short_window:] > signals['long_mavg'][short_window:], 1.0, 0.0)
+
+    # Generate Trading orders
+    signals['positions'] = signals['signal'].diff()
+
+    # === Backtesting === 
+    initial_capital = float(100000)
+
+    # Find the amount to buy
+    start = (signals.signal.values != 0).argmax()
+    initial_price = ohlcv.iloc[start, 3]
+    initial_hold = initial_capital / initial_price
+
+    # Positions keeps track of the amount owned
+    positions = pd.DataFrame(index=signals.index).fillna(0.0)
+    positions['Position in USD'] = signals['signal'] * initial_hold
+    pos_diff = positions.diff()
+
+    # Make a new dataframe to keep track of holdings and cash
+    portfolio = pd.DataFrame()
+    portfolio['holdings'] = (positions.multiply(ohlcv['close'], axis=0)).sum(axis=1)
+    portfolio['cash'] = initial_capital - (pos_diff.multiply(ohlcv['close'], axis=0)).sum(axis=1).cumsum()
+    portfolio['total'] = portfolio['cash'] + portfolio['holdings']
+    
+    portfolio['total'].plot(label='SMA Crossover')
+
+    plt.legend()
+    plt.title("Net worth")
+    plt.tight_layout() 
+
 if __name__ == '__main__':     
     #HODL()
     #HODL2()
+    #RSIDiv()
     #SMACrossover()
-    RSIDiv()
+    Networths()
 
     plt.show()
     
