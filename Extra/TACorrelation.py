@@ -82,5 +82,28 @@ def correlation():
     df = df.mean(axis=0)
     print(df[df <= 0.3])
 
+def getLength():
+    coin = "BAT"
+    df = fetchData(symbol=(coin + "USDT"), amount=2, timeframe='4h')
+
+    # Drop unix and set 'date' as index
+    df = df[['date', 'open', 'high', 'low', 'close', 'volume']] #5 indicators (date not included in count)
+    df = df.set_index("date")
+    test = df.copy()
+    fresh1 = df.copy()
+    fresh2 = df.copy()
+    fresh3 = df.copy()
+    fresh4 = df.copy()
+
+    momentum = ta.add_momentum_ta(fresh1, high = 'high', low = 'low', close = 'close', volume = 'volume')
+    volume = ta.add_volume_ta(fresh2, high = 'high', low = 'low', close = 'close', volume = 'volume')
+    trend = ta.add_trend_ta(fresh3, high = 'high', low = 'low', close = 'close')
+    volatility = ta.add_volatility_ta(fresh4, high = 'high', low = 'low', close = 'close')
+
+    print("Amount of momentum indicators: " + str(len(momentum.columns) - 5))
+    print("Amount of volume indicators: " + str(len(volume.columns) - 5))
+    print("Amount of trend indicators: " + str(len(trend.columns) - 5))
+    print("Amount of volatility indicators: " + str(len(volatility.columns) - 5))
+
 if __name__ == '__main__':
     correlation()

@@ -5,9 +5,8 @@ import ta
 from datetime import datetime
 from binance.client import Client
 
-# === IMPORTANT ===
-# Change these values to your public and secret key, found in your Binance account settings
-client = Client(api_key = 'PUBLICKEY', api_secret = 'SECRETKEY')
+# Initialize the client
+client = Client()
 
 def fetchData(symbol, amount, timeframe):
     """

@@ -1,0 +1,9 @@
+numpy==1.18.5
+python_binance==0.7.9
+tensorflow==2.3.1
+ray==1.2.0
+pandas==1.1.5
+ta==0.7.0
+tensortrade==1.0.2.dev0
+matplotlib==3.3.4
+binance==0.3
