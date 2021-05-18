@@ -11,4 +11,7 @@ After testing the RL agent a graph is plotted, showing the net worth of the agen
 ![Image of benchmark](https://github.com/StephanAkkerman/TensorTrade/blob/main/Pics/Picture1.png)
 
 # TACorrelation
-Displays a heatmap of absolute correlation of technical analysis indicators in the same group. 
+Displays a heatmap of absolute correlation of technical analysis indicators in the same group.
+
+This is how the heatmap of trend indicators looks like.
+![Image of heatmap](https://github.com/StephanAkkerman/TensorTrade/blob/main/Pics/Trend_heatmap.png)
