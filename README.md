@@ -8,7 +8,7 @@ This is a simple script used for gathering the data using Binance's API.
 This code compares the output of the reinforcement learning agent with common benchmarks. The benchmarks are: buy and hold, RSI divergence, SMA crossover.
 
 After testing the RL agent a graph is plotted, showing the net worth of the agent compared to the benchmarks.
-![Image of benchmark](https://github.com/StephanAkkerman/TensorTrade/Pics/Picture1.png)
+![Image of benchmark](https://github.com/StephanAkkerman/TensorTrade/blob/main/Pics/Picture1.png)
 
 # TACorrelation
 Displays a heatmap of absolute correlation of technical analysis indicators in the same group. 
