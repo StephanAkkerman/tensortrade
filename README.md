@@ -16,6 +16,7 @@ $ pip install -r requirements.txt
 Alternatively, you can install the required packages manually like this:
 ```
 $ pip install <package>
+```
 
 ## How to run
 - Clone the repository
