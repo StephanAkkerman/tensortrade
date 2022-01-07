@@ -5,7 +5,7 @@
 
 ---
 
-This is the reinforcement learning code I used for my thesis about how to trade low market capitulization cryptocurrencies.\
+This is the reinforcement learning code I used for my thesis about how to trade low market capitulization cryptocurrencies.
 
 ## Features
 - Fetches up to date historical data from Binance, using a custom script.
